@@ -1,0 +1,158 @@
+---
+title: "MC_Integration"
+author: "XC"
+date: "14/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Fail of Numerical Integration Method
+
+Main difficulty with numerical integration methods such as _integrate_
+is that they often fail to spot the region of importance for the function to
+be integrated.
+
+In contrast, simulation methods naturally target this region by
+exploiting the information provided by the probability density associated with
+the integrals.
+
+
+Example 3.2. Consider a sample of ten Cauchy rv’s xi (1 ≤ i ≤ 10) with
+location parameter $\theta$ = 350. The (pseudo-) marginal of the sample under a flat prior is then
+
+$m(x) = \int_{-\infty} ^{\infty} \Pi_{i = 1}^n \frac{1}{\pi} \frac{1}{1+(x_i - \theta)^2} d\theta$
+
+```{r}
+cac <- rcauchy(n = 10, location = 350)
+str(cac)   # num [1:10] 349 350 362
+
+lik <- function(theta) {
+  u = dcauchy(cac[1] - theta)
+  for (i in 2:10) {
+    u = u * dcauchy(cac[i] - theta)
+  }
+  u
+}
+
+
+integrate(lik, -Inf, Inf)
+integrate(lik, 200, 400)
+
+```
+
+Comment: the error evaluation is absurdly small.
+
+Besides, numerical integration tools cannot easily face the highly (or even
+moderately) multidimensional integrals.
+
+
+
+
+## 3.2 Classical Monte Carlo integration
+
+The generic problem is about evaluating the integral
+
+
+$\mathbb{E}_f[h(X)] = \int_{\mathcal{X}} h(x) f(x) dx$
+
+
+## Example 3.3. For the toy function1
+(3.2)    $ h(x) = [cos(50x) + sin(20x)]^2 $,
+
+to integrate h(x) from 0 to 1, can be seen as a uniform expectation, and therefore we generate U1, U2, . . . , Un iid U(0, 1) random variables
+approximate $\int h(x) dx$ with $1/n\sum h(U_i)$. 
+
+```{r}
+h=function(x){(cos(50*x)+sin(20*x))^2}
+
+par(mar=c(2,2,2,1),mfrow=c(2,1))
+curve(h,xlab="Function",ylab="",lwd=2)
+
+integrate(h,0,1)   # numerical method
+
+
+
+# compare with simulation method
+x <- h(runif(10^4))                       # h(Ui)
+estint <- cumsum(x) / (1:10^4)            # cumulative sum, cumulative average
+esterr <- sqrt(cumsum((x - estint)^2)) / (1:10^4)
+
+
+plot(estint, xlab = "Mean and error range", type = "l",lwd = 2, 
+     ylim = mean(x) + 20 * c(-esterr[10^4], esterr[10^4]), ylab="")
+lines(estint + 2 * esterr, col = "gold", lwd = 2)
+lines(estint - 2 * esterr, col = "gold", lwd = 2)
+```
+
+Remark:
+  * the _cumsum_ is handy, which can compute all the partial sum of the seq at once
+
+
+
+## use Monte Carlo sums to calculate a normal cumulative distribution function
+
+Given a N(0, 1) sample with sample size n, i.e. (x1,..., xn), the approxiamtion to its CDF 
+$\Phi(t) = \int_{-\infty} ^ t \frac{1}{\sqrt(2\pi)}  exp^{(-\frac{y^2}{2})}$ 
+
+can be approximated by MC Integration 
+
+$\hat{\Phi}(t) = \frac{1}{n} \sum_{i = 1} ^n \mathbb{I}_{x_i \leq t}$
+
+with exact variance $var(\hat{\Phi}(t)) = \frac{1}{n} \Phi(t) [1-\Phi(t)]$ since
+the r.d.v. $\mathbb{I}_{x_i \leq t}$ is a Bernoulli distribution with probability 
+of success $\mathbb{P}{x_i \leq t} = \int_{-\infty} ^ t \frac{1}{\sqrt(2\pi)}  exp^{(-\frac{y^2}{2})} = \Phi(t)$ 
+
+```{r}
+bound=qnorm(c(.5,.75,.8,.9,.95,.99,.999,.9999))
+str(bound)
+```
+
+
+```{r}
+#qnorm() # provide prob return quantile z values
+#bound=qnorm(c(.5,.75,.8,.9,.95,.99,.999,.9999))
+#str(bound)
+
+x <- rnorm(10^8)    # sample from N(0, 1)
+z <- qnorm(p = c(.5, .75, .8, .9, .95, .99, .999, .9999)) # provide prob return quantile z
+
+res <- matrix(0, nrow = 7, ncol = 8)
+for (i in 2:8) {
+  for (j in 1:8) {
+    res[i-1, j] <- mean(x[1:10^i] <= z[j])
+  }
+}
+
+matrix(as.numeric(format(res, digits = 4)), ncol = 8)
+
+
+#matrix(as.numeric(format(res,digi=4)),ncol=8)
+```
+
+
+
+Remark:
+
+  
+  * At z round 0, $Var(\hat{\Phi}(0)) = \frac{1}{n} \Phi(0) [1-\Phi(0)] = \frac{1}{4n}$
+  * To achieve the 4 digit precision, require the number of simulations satisfy
+  $2\sqrt(var) \leq 10^{-4}$, so $n = 10^8$ simulations are required to achieve the precision.
+  * not recommend to produce all digits in simulations as most of them are not significant.
+      * _format_ function cut down the number of digits
+      
+  * Even MC intergration provides good approximation in most cases, there exist 
+      more efficient alternatives that can avoid direct simulate from f and could
+      be used repeated for several integral
+  * Tail simulation can be much more efficiently simulated than direct simulation
+  as events with very small probability requires very large number of simulations 
+  from f to achieve the precision.
+
+
+
+
+
+
+
