@@ -1,0 +1,368 @@
+---
+title: "Importance Sampling"
+author: "XC"
+date: "15/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Improtance Sampling
+Relies on importance function which is an instrumental dist'ns. 
+
+Advantages:
+  * simulate directly from f is never optimal
+  * simulate from alternative dist'ns can improve the variance of the estimator of 
+      the original target $\mathbb{E}_f[h(x) ] = \int_{\mathcal{X} } h(x) f(x) dx$, 
+      where the $\mathcal{X}$ is the supp(X), may be smaller than the supp(g)
+      
+### Fundamental theories
+      
+* Assume proposal $g(x) > 0$ for a.e.x and integrad $f(x) \varphi(x) \neq 0$, then:
+$\mathbb{E}_f(\varphi(x)) = \int f(x) \varphi(x) dx = \int g(x) \frac{f(x)}{g(x)} \varphi(x) dx = \int g(x) w(x) \varphi(x) dx = \mathbb{E}_g[w(x) \varphi(x)]$ 
+
+* Reason: 
+  * if $X_1, ..., X_n \sim g(x)$ and $\mathbb{E}_g|w(x) \varphi(x)| < \infty$, then
+      * $\frac{1}{n}\sum_{i=1} ^n w(x_i) \varphi(x_i) \longrightarrow ^{a.s}_{n\rightarrow \infty} \mathbb{E}_g[w(x) \varphi(x)] $; 
+      * $\frac{1}{n}\sum_{i=1} ^n w(x_i) \varphi(x_i) \longrightarrow ^{a.s}_{n\rightarrow \infty} \mathbb{E}_f[\varphi(x)]$
+      
+      
+* Algorithm:
+  - choose $supp(g) \supseteq supp(f(x) \varphi(x))$
+  - For i in 1,..,n
+      - sample Xi $\sim g$
+      - set $w(X_i) = \frac{f(X_i)}{g(X_i)}$
+      - return $\hat{\mu} = \frac{1}{n}\sum_iw(x_i) \varphi(x_i)$, 
+          - which is right the estimate $\mathbb{E}_f[\varphi(x)]$
+
+
+* Remark:
+  - IS does not produce samples from f, but a weighted samples (Wi, Xi)
+  
+ 
+### Example 3.5:
+Approximating tail probabilities using standard Monte Carlo sums breaks down once one goes far enough into the tails. example, if Z ∼ N(0, 1) and we are interested in the probability P(Z > 4.5), which is very small,
+
+```{r}
+#probability P(Z > 4.5)
+# pnorm(quantile)  = P(X<= quantile)
+pnorm(-4.5) # by symmetry 
+pnorm(-4.5, log.p = T)
+```
+
+Remark: 
+  - the probability of drawing a rv Z ~ N(0,1) < -4.5 is 1 hit in 3 million iterations!
+  - naive simulation from original target f would require millions of simulations
+       to get stable answer. 
+  - if interested in the rear event probability, then
+  - Thanks to importance sampling, can greatly improve the accuracy and reduce the number of simulatations by several oders of magnitude
+  
+  - choose g(x) to be the truncated exponential distn $exp(1)$ truncated at 4.5
+  $g(y) = e^{-y} / \int_{4.5} ^{\infty} = exp^{-(y-4.5)}$
+  
+```{r}  
+  
+N <- 10^3
+y <- rexp(N) + 4.5  # rdv from turncated exp
+weit <- dnorm(y) / dexp(y - 4.5)  # num[1:1000]
+
+plot(cumsum(weit) / 1:N, type  = "l")
+abline(a = pnorm(-4.5), b = 0, col = "red")
+
+```       
+
+```{r}     
+# the final number:
+
+(cumsum(weit) / 1:N)[N]
+
+# compared to the true value 3.397673e-06
+
+```
+
+
+
+#### Example 3.6
+Observatoins $X \sim Beta(\alpha, \beta)$, conjugate prior on parameters $(\alpha, \beta)$ is also Beta i.e. $\pi(\alpha, \beta)$, so posterior $\pi(\alpha, \beta|x)$ is also in Beta form. 
+
+But the posterior is intractable due to its gamma part. So cannot sample directly 
+from the posterior distribution. Need to find a substitute distribution $g(\alpha, \beta)$. 
+
+To propose, first need to look at the image of the posterior $\pi(\alpha, \beta | x)$. We set hyperparameters $\lambda = 1, x_0 = y_0 = 0.5$, at a specific data obs
+x = 0.6
+
+then the posterior $\pi(\alpha, \beta | x) = exp^{log(\pi(\alpha, \beta | x))} = exp^{2*[log(\Gamma(a+b))] - log{\Gamma(a)} - log{\Gamma(b)} + a*log(0.3) + b*log(0.2)}$
+
+```{r}
+f <- function(a, b) {
+  exp(2 * (lgamma(a + b) - lgamma(a) - lgamma(b)) + a * log(0.3) + b * log(0.2))
+
+}
+
+aa <- 1:150  # alpha grid for image
+bb <- 1:100  # beta grid for image
+
+posterior <- outer(aa, bb, f)
+
+image(aa, bb, posterior, xlab = expression(alpha), ylab = expression(beta))
+contour(aa, bb, posterior, add = T)
+```
+
+
+Remark: the posterior $\pi(\alpha, \beta | x)$ looks like normal or student t
+
+Choose student $T(df = 3, \mu, \Sigma)$, where $\mu = [50, 45]^T$, and $\Sigma = matrix(c(220, 190, 190, 180))$, which is obtained by trial and error
+
+```{r}
+x <- matrix(rt(2 * 10^4, df = 3), ncol = 2)
+
+mu <- c(50, 45)
+E <- matrix(c(220, 190, 190, 180), ncol = 2)
+
+y <- t(t(chol(E)) %*% t(x) + mu)  # 10000 * 2 
+                                  # used to replace the posterior interesed
+
+image(aa, bb, posterior, xlab = expression(alpha))
+points(y, cex = .16, pch = 19)
+
+```
+
+
+```{r}
+normx=sqrt(x[,1]^2+x[,2]^2)
+str(normx) # num [1:10000] 2.138 2.036 2.91 1.372
+
+```
+
+
+
+```{r}
+ine <- apply(y, 1, min)
+y <- y[ine > 0, ]
+x <- x[ine > 0, ]
+normx <- sqrt(x[,1]^2+x[,2]^2)
+#normy <- sqrt(y[, 1]^2 + y[, 2]^2)
+
+f <- function(a) {
+  exp(2*(lgamma(a[,1]+a[,2])-lgamma(a[,1]) -lgamma(a[,2]))+a[,1]*log(.3)+a[,2]*log(.2))
+}
+
+h <- function(a) {
+  exp(1*(lgamma(a[,1]+a[,2])-lgamma(a[,1]) -lgamma(a[,2]))+a[,1]*log(.5)+a[,2]*log(.5))
+  
+}
+
+den <- dt(normx,3)
+#den2 <- dt(normy, 3)
+
+#weight_post <- mean(f(y) / den2)
+#weight_prior <- mean(h(y) / den2)
+
+mean(f(y)/den)/mean(h(y)/den)  # approximated marginal likelihood
+
+```
+
+
+
+```{r}
+
+image(aa, bb, posterior, xlab = expression(alpha))
+points(x, cex = .16, pch = 19)
+
+```
+
+## self-normalized importance sampling
+The use of the renormalized weights in the importance sampling estimator
+produces the self-normalized importance sampling estimator
+
+
+```{r}
+par(mfrow=c(2,2),mar=c(4,4,2,1))
+
+weit=(apply(y,1,f)/den)/mean(apply(y,1,h)/den)
+
+apply(y, 1, f)  ##??
+
+den <- dt(normx,3)
+str(den)
+
+str(y)
+str(y[, 1])
+
+```
+
+
+
+## Defensive sampling (Hesterberg 1995)
+
+Reasons:
+  - importance sampling deals with f hard to tackle, esp. the tail part
+  
+Mearsures:
+  - incorporate an artifical fat tail component into importance function g(x)
+  - $g(x) = \rho g(x) + (1-\rho) l(x), 0 < \rho < 1$
+      where $\rho$ is close to 1, and $l(x)$ is chosen for fat tail (e.g. Cauchy or Pareto)
+      
+Coding ideas:
+  - observations are generated from g with prob $\rho$ and from l with prob (1-$\rho$)
+
+
+Examples: 
+  - Probit model
+  - likelihood : $\mathcal{L}(\mathbf{\beta}; \mathbf{Y}, \mathbf{X}) = \Pi_{i = 1} ^n \Phi(\mathbf{x}_i^T \mathbf{\beta})^{y_i} [1- \Phi(\mathbf{x}_i^T \mathbf{\beta})]^ {(1-y_i)}$
+
+```{r}  
+install.packages("MASS")
+library(MASS)
+
+# response: Pima.tr$type, diabite 1, not 0
+# covaraites: Pima.tr$bmi  number
+head(Pima.tr$bmi)
+head(Pima.tr$type)
+str(Pima.tr)
+length(Pima.tr$type == "Yes")
+length(Pima.tr$type == "No")
+
+
+```  
+
+• Use glm to get the mle estimates
+```{r}
+m1 <- glm(type ~ bmi, data = Pima.tr, family = binomial(link = "probit"))
+summary(m1)
+```
+So mle for beta[0] = -2.53 and mle for beta[1] = 0.06479
+
+
+• from a Bayesian perspective, put a vague prior on beta ~ N(0, 100)
+```{r}
+lik <- function(beta1, beta2) {
+  bmi_bar <- mean(Pima.tr$bmi)
+  prod(pnorm(beta1 + beta2 * (Pima.tr$bmi[Pima.tr$type == "Yes"] - bmi_bar))) * 
+    prod(pnorm(beta1 + beta2 * (Pima.tr$bmi[Pima.tr$type == "No"] - bmi_bar))) 
+  #/ exp(sum(beta1^2 + beta2^2) / 200)
+}
+
+post <- lik 
+
+```
+
+
+
+
+Propose a g(x) with Normal(mean = -0.4, sd = 0.04)* Normal(mean = 0.065, sd = 0.005)
+```{r}
+sim <- cbind(rnorm(1000, mean = -0.4, sd =  0.04), rnorm(1000, mean = 0.065, sd = 0.005))
+
+weit <- apply(sim, 1, post) / dnorm(sim[, 1], mean = -0.4, sd =  0.04) * dnorm(sim[, 2], mean = 0.065, sd = 0.005)
+
+boxplot(weit)  # quite uneven
+
+
+#head(apply(sim, 1, post))
+
+```
+
+
+To evaluate the low impact of the defensive sampling, also create an importance sample that includes simulations from the prior with probability .05. 
+
+```{r}
+sim <- rbind(sim[1:(0.95*1000),] , cbind(rnorm(0.05 * 1000, sd = 10), rnorm(0.05 * 1000, sd = 10)))
+
+
+weit <- apply(sim, 1, post) /( 0.95*dnorm(sim[, 1], mean = -0.4, sd = 0.081) * dnorm(sim[, 2], mean = 0.065, sd = 0.1) + 0.05 * dnorm(sim[, 1], mean = 1, sd = 10)* dnorm(sim[, 2],sd = 10))
+
+str(weit)
+```
+
+
+
+## Simulate truncate distrubtion
+
+- To simulate $Y \sim exp^+ (a, 1)$, left truncate at a, we can 1st simulate $X \sim epx(1)$, the take Y = X + a
+
+- Example
+Use this method, calculate the P(X >  25), where X ~ $\chi^2 (3)$
+```{r}
+X <- rexp(1e4, 1) + 12.5
+I <- sqrt(X) * exp(-12.5) / gamma(3/2)  
+estint <- cumsum(I) / (1:1e4)
+esterr <- sqrt(cumsum((I - estint)^2)) / (1:1e4)
+
+plot(estint, xlab = "interations", ylab = "", type = "l", lwd = 2, ylim = mean(I) + 20 * c(-esterr[1e4], esterr[1e4]))
+
+lines(estint + 2 * esterr, col = "gold", lwd = 2)
+lines(estint - 2 * esterr, col = "gold", lwd = 2)
+
+str(estint)
+mean(estint)  # the estimated integral or probability
+mean(esterr)  # estimated error
+```
+
+compare with direct integrate
+```{r}
+h <- function(x) {
+  sqrt(x) * exp(-x) * gamma(3/2)
+}
+integrate(h, 12.5, Inf)
+
+#h=function(x){ exp(-x)*sqrt(x)/gamma(3/2)}
+
+```
+
+
+Now use this method to calculate the P(X > 50), where $X \sim t(t)$
+```{r}
+# direct integrand
+h <- function(x){ 
+  1/sqrt(5*pi) * gamma(3) / gamma(2.5) * 1/(1 + x^2 / 5)^3}
+
+integrate(h, 50, Inf)
+
+
+# simulate from truncate exp(1) method
+X <- rexp(1e4, 1) + 50 
+I <- 1/sqrt(5*pi) * gamma(3) / gamma(2.5) * 1/(1 + X^2 / 5)^3 * 1/exp(-X + 50)
+estint <- cumsum(I) / (1:1e4)
+esterr <- sqrt(cumsum((I - estint)^2)) / (1:1e4)
+
+plot(estint, xlab = "interations", lwd = 2, ylim = mean(I) + 20 * c(-esterr[1e4], esterr[1e4]), ylab = "")
+
+lines(estint + 2 * esterr, col = "gold", lwd = 2)
+lines(estint - 2 * esterr, col = "gold", lwd = 2)
+```
+
+Remark:
+
+  - observe a jump in the convergence pattern
+  - indicative of variance problem
+  - the estimator variance does not have finite varaince
+  - The value returns using this method is different from the direct intergrate or pt(quantil, ...) return probability
+  
+```{r}  
+mean(I)             # estimated intergrate
+sd(I) / sqrt(1e4)   # estimated std.err
+
+
+# direct method
+integrate(h, 50, Inf)
+
+
+# use pt, input quantile, return probability
+pt(50, df = 5, lower.tail = F)  # P(X>50) so upper tail
+
+# so direct method is the close to the true
+  
+```  
+  
+  
+  
+  
+
+
+
+
+
+
