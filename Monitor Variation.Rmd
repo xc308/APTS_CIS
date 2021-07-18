@@ -1,0 +1,97 @@
+---
+title: "Monitor_variation"
+author: "XC"
+date: "18/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Monitoring Variation
+
+Simple solution for evaluating the variability of a sequence of Monte Carlo estimates, which is to run several independent sequences in parallel.
+
+An approximate but cheaper version of this basic Monte Carlo estimate of the variability is to bootstrap (see Section 1.5) the current sample,
+
+
+### Example 4.1
+```{r}
+h=function(x){(cos(50*x)+sin(20*x))^2}
+
+x <- matrix(h(runif(200 * 1e4)), ncol = 200)
+str(x)                                    # 10000 by 200
+
+estint <- apply(x, 2, cumsum) / (1:1e4)   # 1row 2col
+
+str(estint) # num [1:10000, 1:200] 
+
+str(estint[, 1])   # select the 1st chain out of 200
+range(estint[, 1])  # [1] 0.8368111 1.7911146
+
+
+plot(estint[, 1], type = "l", ylim = c(0.8, 1.2))
+
+y <- apply(estint, 1, quantile, c(0.025, 0.975))
+polygon(c(1:1e4, 1e4:1), c(y[1, ], rev(y[2, ])), col = "wheat")
+
+#str(y)        # num [1:2, 1:10000] 0.00269 3.576009 0.0396
+#str(y[1, ])   # num [1:10000] 0.000269
+#str(y[2, ])   # num [1:10000] 3.58 2.89 2.5 2.08 2.03 .
+#str(rev(y[2, ]))   
+#str(y[,1])
+#str(rev(y[, 2]))
+```
+
+
+Remark:
+  - at any iterations, the band contains 95% of the estimation sequence chain (out of 200 chains of seq)
+  - but if we just pick one single chain of seq out of 200, its CLT confidence band would fail to correspond to this global band as this single chain will reproduce this original variation
+  
+  
+Now consider bootstrap version of this global band
+```{r}
+# reproduce the 1st col of x
+boot_x <- matrix(sample(x[, 1], 200 * 1e4, replace = T), ncol = 200)
+boot_it <- apply(boot_x, 2, cumsum) / (1:1e4)
+str(boot_it)  #  num [1:10000, 1:200] 
+
+boot_up <- apply(boot_it, 1, quantile, 0.975)
+boot_low <- apply(boot_it, 1, quantile, 0.025)
+
+str(boot_up)  #  num [1:10000] 
+
+range(boot_up)    # 0.9970383 3.7476883
+range(boot_low)   # 0.0005542433 0.9613388449
+plot(boot_it[, 200], type = "l", ylim = c(0, 1.5))
+
+polygon(c(1:1e4, 1e4:1), c(boot_up, rev(boot_low)), col = "gold")
+```
+
+Remark:
+  - produced has a behavior that is quite similar to that of the band resulting from iid replications of the Monte Carlo sequence, except for a drift in its location. 
+  - The gain in using the bootstrap version is only a single sequence needs to be produced.
+  - but the cost of bootstrap seq is the same as iid MC sample new seq
+  - but in more complex setting, producing new seq is more complicated than bootstrap original seq
+  
+  - The most important implication is naivee usage of normal confidence band mean+/- 2* std.err which only depends on the mean estimator at kth iteration and the std.error at the kth iteration. However, there are correlation structure among different iterations, i.e. it's pointwise validation. 
+      - so a valid confidence band would require a distribution of the entire seq in a multivariate or functional perspective. 
+  - so need parallel band for estimator, although costly, it provides the debiased assement on the variation of these estimators. 
+      
+      
+      
+      
+      
+      
+      
+
+
+
+
+
+
+
+
+
+
