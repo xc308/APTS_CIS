@@ -354,13 +354,43 @@ integrate(h, 50, Inf)
 pt(50, df = 5, lower.tail = F)  # P(X>50) so upper tail
 
 # so direct method is the close to the true
+
+
+
   
 ```  
   
-  
-  
-  
+ 
+ 
+Exercise 3.17  
+```{r}  
+nsim <- 1e4
 
+X <- rep(0, nsim)
+Y <- rep(0, nsim)
+for (i in 1:nsim) {
+  Y[i] <- rexp(1)
+  X[i] <- rgamma(1, shape = 1, rate = Y[i])
+}
+
+
+MCmargin <- function(x, X, Y) {
+  dgamma(x, shape = 1, rate = Y) / dgamma(X, shape = 1, rate = Y) * dgamma(X, shape = 7, rate = 3)
+}
+
+
+Margin_true <- function(x) {
+  (x + 1)^2
+}
+
+
+xyplot <- seq(-0.5, 0.5, nsim)
+plot(MCmargin(xyplot, X, Y) - Margin_true(xyplot))
+
+
+
+
+```
 
 
 
