@@ -1,0 +1,49 @@
+---
+title: "Asymptotic variance of importance sampling estimators"
+author: "XC"
+date: "18/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 4.3 Asymptotic variance of importance sampling estimators
+
+Example 4.3 
+```{r}
+set.seed(19-07-2021)
+theta <- matrix(rnorm(500 * 1e4), ncol = 500) + 2.5  # simulate from exp^{-(theta - 2.5)^2}
+weit <- 1/(1 + theta^2)
+est <- apply(theta * weit, 2, cumsum) / apply(weit, 2, cumsum)  # cumsum for each col
+str(est)  # num [1:10000, 1:500] 
+
+plot(est[, 1], type = "l", ylim = c(1.5, 2.2))
+range(est[, 1])
+
+
+band <- apply(est, 1, quantile, c(0.025, 0.975))  # global band across 500 iteration
+polygon(c(1:1e4, 1e4:1), c(band[1, ], rev(band[2,])), col = "wheat")
+
+
+
+# if just choose one sequence to produce band
+  # 1st calcuate the varaiance of the esti = E(est)^2 - {E(est)}^2
+
+var <- cumsum((theta[, 1])^2 * weit[, 1] ) / cumsum(weit[, 1]) - (est[, 1])^2
+lines(est[, 1] + 2 * sqrt(var / (1:1e4)), col = "sienna")
+lines(est[, 1] - 2 * sqrt(var / (1:1e4)), col = "sienna")
+```
+
+Remark:
+  - so cannot trust the sigle seq produced normal band as there's a clear under estimation
+
+
+
+
+
+
+
+
+

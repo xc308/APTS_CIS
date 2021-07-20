@@ -1,0 +1,238 @@
+---
+title: "MHsampler"
+author: "XC"
+date: "19/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Metropolis–Hastings Algorithms
+
+Unlike IS sampling generating iid samples, MH generates correlated variables from MC, but it provide easier proposal when IS doesn't apply. 
+
+  - only little need to be known about the target f
+  - Markovian property leads to efficient decompositions of high-dimensional problems in a sequence of smaller problems that are much easier to solve
+  - Most of your time and energy will be spent in designing and assessing your MCMC algorithms
+  
+  
+  
+- Incredible feature of MH:
+  - for every given q(.), we can construct a Metropolis-Hasting kernel whose stationary is the target f
+  - 
+  
+## Example 6.1
+- Target distriubtion: Beta(2.7, 6.3)
+- proposal dist q: unif[0,1], means does not depend on previous step value of the chain
+- MH algo
+
+```{r}  
+a <- 2.7; b = 6.3
+
+Nsim <- 5000
+X <- rep(runif(1), Nsim)   # initialize the chain
+for(i in 2:Nsim) {
+  Y = runif(1)        # proposed value from q
+  alpha = dbeta(Y, a, b) / dbeta(X[i-1], a, b)    # q are all unif[0, 1] cancell out
+  X[i] = X[i-1] + (Y - X[i-1]) * (alpha > runif(1))   # logical true or false
+}
+
+str(X)
+plot(X, type = "l")    # no pattern 
+plot(X[4500:4800], type = "l")      # for some intervals of time, the sequence (X(t)) does not change because all corresponding Y's are rejected. 
+``` 
+Remark: 
+
+  - Those multiple occurrences of the same numerical value (rejected Y's) must be kept in the sample as such, otherwise, the validity of the approximation of f is lost!
+  - Consider the entire chain as a sample, its histogram properly approximates the Be(2.7, 6.3) target.
+  
+```{r}  
+hist(X, breaks = 300)
+lines(rbeta(5000, 2.7, 6.3), col = "red")
+
+```
+
+Can checked even further using a Kolmogorov–Smirnov test of equality between
+the two samples:
+```{r}
+ks.test(jitter(X), rbeta(5000, a, b))
+
+```
+
+Can also compare the mean and variance
+```{r}
+mean(X)
+var(X)
+
+
+# theoretical 
+(mean_theo <- a/(a+b))
+(var_theo <- a*b / ((a+b)^2 * (a+b+1)))
+
+```
+
+
+Remark: 
+  - although rbeta output look similar as MH simulation output
+  - rbeta generates iid, but MH generates correlated samples. 
+  - so the quality of the samples are degraded, and need more simulations to achieve the same precision. 
+  - need the "  effective sample size for Markov chains"  (Section 8.4.3).
+  
+  
+  
+### Properties of MH
+- In symmetric case, i.e. $q(y|x) = q(x|y)$, the acceptance probabilty alpha only depends on the ratio $f(y)/ f(x^{(t)})$, so alpha is independent of q
+- But the performance of HM will be affected by the choice of q
+    - if the supp(q) is too small, compared with the range of f, then the M chain will have difficulty to explore the range of f, and will coverge very slowly. 
+    
+- Another property of MH algo: it only depends on the ratios:
+  $f(y)/ f(x^{(t)})$, $q(x^{(t)})|y) / q(y|x^{(t)})$
+  hence independent of normalizing constant. 
+  
+- q may be chosen in a way that the intractable parts of f is canceled out. 
+    
+    
+    
+    
+### Example 6.2 
+To generate a student-t random variable, (that is, when f corresponds to a t(1) density), it is possible to use a N(0, 1) candidate within a Metropolis–Hastings algorithm
+
+```{r}
+Nsim <-  1e4  
+X <- rep(runif(1), Nsim) # intial value 
+for (i in 2:Nsim) {
+  Y <- rnorm(1)     # proposal
+  alpha <- dt(Y, 1) * dnorm(X[i-1]) / (dt(X[i-1], 1) * dnorm(Y))
+  X[i] <- X[i-1] + (Y - X[i-1]) * (alpha > runif(1))
+}
+
+str(X)   # num [1:10000] 0.6923
+
+par(mfrow = c(2, 2))
+hist(X, breaks = 250)
+acf(X)
+
+# want to  see the approximation to  P(X < 3)
+plot(cumsum(X < 3) / (1:1e4), type = "l", lwd = 2)
+
+```
+
+
+## More realistic situation
+When the indept proposal q is derived from a preliminary estimation of the parameters of the model. 
+  - the proposal could be a normal or t distribution centered at the mle of theta and the variance - covariance matrix be the inverse of fisher informaton matrix 
+
+
+### Random walk MH
+Example 6.4 
+formal problem of generating the normal distribution N(0, 1) based on a random walk
+proposal equal to the uniform distribution on [−δ, δ].
+
+```{r}
+Uni_rdwk <- function(delta) {
+  Nsim <- 1e4
+  X <- rep(runif(1), Nsim)
+  for (i in 2:Nsim) {
+    Y <- runif(1, X[i-1] - delta, X[i-1] + delta)
+    # <- rnorm(1, X[i-1], 1)         # proposal is N(X[i-1], 1) 
+    alpha <- dnorm(Y) / dnorm(X[i-1])
+    X[i] = X[i-1] + (Y - X[i-1]) * (alpha > runif(1)) 
+  }
+  X
+}
+```
+
+Calibrating the delta with 3 values: 0.1, 1, and 10 
+
+```{r}
+X_0.1 <- Uni_rdwk(0.1)
+X_1 <- Uni_rdwk(1)
+X_10 <- Uni_rdwk(10)
+
+
+par(mfrow = c(3, 3))
+
+# plot cumsum
+plt_cum <- function(X, ylim) {
+  plot(cumsum(X) / (1:1e4), ylim = ylim)
+}
+
+plt_cum(X_0.1, ylim = c(-1, 1))
+plt_cum(X_1, ylim = c(-1, 1))
+plt_cum(X_10, ylim = c(-1, 1))
+
+
+# plot hist
+plt_hist <- function(X) {
+  hist(X, breaks = 250)
+}
+
+plt_hist(X_0.1)
+plt_hist(X_1)
+plt_hist(X_10)
+
+
+
+# Plot ACF
+
+plt_acf <- function(X) {
+  acf(X)
+}
+
+plt_acf(X_0.1)
+plt_acf(X_1)
+plt_acf(X_10)
+```
+Remark:
+  - Too narrow or too wide a candidate (too small and too large delta) results in slow convergence and high autocorrelation
+  - calibrating the scale δ of the random walk is crucial to achieving a good approximation to the target distribution in a reasonable number of iterations.
+  - more realistic situations, this calibration becomes a challenging issue
+  
+  
+#### Adv and disadv of Rd walk 
+  - Idendpend MH only applies to some specific situations, while Rd walk caters to most cases
+  - But Rd WALK is not the most efficient choic:
+    - it requires many iterations for difficulities such the low probability regions between modal regions of f
+    - due to its simitray, it spends half the simulation revisit the 
+    - So exists alternatives that bypass the perfect symmetry in the rdwk to gain efficiency
+    - although not always easy to implement. 
+    
+One of the alternatives is the Langivine that choose to move to heavier value of target f by including the gradient in the proposal
+
+But in the mixture model structure, the bimodal structure can be hard for Lagenin as the local mode can be very attractive
+
+
+
+
+```{r}
+like=function(beda){
+mia=mean(Pima.tr$bmi)
+prod(pnorm(beda[1]+(Pima.tr$bm[Pima.tr$t=="Yes"]-
+mia)*beda[2]))*
+prod(pnorm(-beda[1]-(Pima.tr$bm[Pima.tr$t=="No"]
+-mia)*beda[2]))/exp(sum(beda^2)/200)
+}
+  
+```  
+  
+```{r} 
+beta <- c(0, 1, 3)
+outer(3, beta, FUN = "*")
+
+
+x1=sum((dnorm(x=a+outer(X=b,Y=da[,2],FUN="*"))/don)*da[,1]-
+(dnorm(x=-a-outer(X=b,Y=da[,2],FUN="*"))/
+(1-don))*(1-da[,1]))
+  
+```  
+  
+  
+  
+  
+  
+  
+  
+  
+
