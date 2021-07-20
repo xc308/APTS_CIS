@@ -1,0 +1,38 @@
+---
+title: "Acceptance_Rate"
+author: "XC"
+date: "20/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+- Infinite choice for proposal q() in MH
+- want to achieve the optimal choice
+  - the "optimal" is obviouse q = target f in terms of spead, but no relevance in practice as we usually don't know what f is
+  - Need practical criterion that allows comparision of proposal kernel in situations where little/nothing is know about f
+      - One criterion: the acceptance rate of the hm
+        - computed via the empirical frequency of the acceptance
+      
+- High acceptance rate does not necessarily means the algo is move satisfactorily as it may move too slowly on the surface of f, hence poor convergence. 
+  - but if f is just flat, then high acceptance rate is not wrong. 
+- Low acceptance rate means the rd walk moves too fast and always hit the border of the supp(f). So it does not mean it explore the whole supp(f), hence even with small acceptance rate, it may still miss an important but isolated mode of f. 
+  - less of an issue, as it means large number of simulations are necessary
+  
+  
+- Roberts et al. (1997) Under Guassian enviornment, when with instrumental distribution, ideal acceptance rate is around 1/4 for high dimensional models, and 1/2 for models with dimension 1 or 2. 
+
+
+
+
+
+  
+  
+  
+  
+  
+  
+  - 
