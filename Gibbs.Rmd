@@ -1,0 +1,116 @@
+---
+title: "Gibbs"
+author: "XC"
+date: "20/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Appeals of Gibbs
+- They gather most of their calibration from their target
+- allow us to break complex problem (high-dim target such that rdwk HM almost impossible to build) into seriers of easier problems e.g. low-dim targets. 
+
+
+## Two stage Gibbs sampler
+It creates the joint distribution. 
+If two rdv X, Y have joint distribution f(x, y), with conditional distribtion $f_{X|Y}, f_{Y|X}$, the the algo: 
+- step 1: Set X0 = x0;
+- For t = 1, 2, 3, ...
+- step 2: $Yt \sim f_{Y|X}(.|x_{t-1})$
+          $Xt \sim f_{X|Y}(.|y_t)$
+
+Convergence of the MC is ensured unless the supports of the conditionals are _not connected_
+
+
+### Example 7.2
+A pair of distribution $X | \theta \sim Bin(n, \theta)$, $\theta \sim Beta(a, b)$,
+leads to joint distribution $f(x, \theta) = f(x| \theta) \pi(\theta) = C_n^{x} \frac{\Gamma(a+b)}{\Gamma(a) \Gamma(b)} \theta^{x+a-} (1-\theta)^{n-x+b-1}$, so the posterior distribution of $\theta$, i.e. $f(\theta|x) \propto Beta (x+a, n-x+b)$
+
+```{r}
+Nsim <- 5000
+n <- 15
+a <- 3
+b <- 7
+
+X <- T <- array(0, dim = c(Nsim, 1))
+T[1] <- rbeta(1, a, b)
+X[1] <- rbinom(1, n, T[1])
+
+for (i in 2:Nsim) {
+  X[i] <- rnorm(1, n, T[i-1])
+  T[i] <- rbeta(1, X[i] + a, n - X[i] + b)
+}
+```
+
+```{r}
+par(mfrow = c(1, 2))
+hist(X,  xlab = "X", freq = F, ylab = "marginal density")
+lines(density(X), col = "gold", lwd = 2)
+
+hist(T, freq = F, xlab = expression(theta), ylab = "marginal density")
+lines(density(T), col = "gold", lwd = 2)
+```
+
+
+
+Remark: 
+  - this is a special case as the marginal or posterior of theta is available in _closed_ form. 
+  
+  
+
+### Example 7.3
+
+```{r}
+x <- c(91,504,557,609,693,727,764,803,857,929,970,1043,1089,1195,1384,1713)  # data
+
+a <- 3; b <- 3; theta_0 <- 5; tau2 <- 10   # specified values for hyper parameters
+
+xbar <- mean(x)
+n <-length(x)
+Nsim <- 10000
+
+sigma2 <- theta <- rep(0, Nsim)                     # inti arrays
+
+sigma2[1] <- 1 / rgamma(1, shape = a, rate = b)     # initializae sigma2
+B <- sigma2[1] / (sigma2[1] + n * tau2) 
+theta[1] <- rnorm(1, mean = B * theta_0 + (1 - B) * xbar, sd = sqrt(B * tau2)) # init theta
+
+for (i in 2:Nsim) {
+  B <- sigma2[i - 1] / (sigma2[i - 1] + n * tau2)
+  theta[i] <- rnorm(1, mean = B * theta_0 + (1 - B) * xbar, sd = sqrt(B * tau2))
+  Ra <- sum((x - theta[i])^2)
+  sigma2[i] <- 1 / rgamma(1, shape = n / 2 + a, rate = 0.5 * Ra + b)
+}
+
+```
+
+```{r}
+log(xbar)   # 6.769068
+
+sd(x)       # 378
+
+log(sd(x))
+
+```
+Now check the posterior mean of theta and sigma2
+```{r}
+mean(theta)
+mean(sqrt(sigma2))
+
+mean(log(sqrt(sigma2)))   # 6.707253
+
+
+par(mfrow = c(1, 2))
+
+hist(log(theta), breaks = 150)
+hist(log(sqrt(sigma2)), breaks = 150)
+#hist(log(theta), ylab = "posterior density of log(theta)")
+#hist(log(sqrt(sigma2)), ylab = "posteior density of log(sigma)")
+```
+
+
+
+
