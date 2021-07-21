@@ -1,0 +1,142 @@
+---
+title: "Multi-stage Gibbs"
+author: "XC"
+date: "21/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Exercise 7.5
+
+Normal target $N_p(0, (1-\rho) I + \rho J)$ where $J$ is $p \times p $ 1's matrix and $I_p$ is a $p \times p$ Identity matrix. This is the so-called _equal correlation model_ as $cov(X_i, X_j) = \rho, i \neq j$.
+
+Then the full conditional distribution
+$X_i|X_{-i} \sim N(\frac{(p-1)\rho}{1 + (p-2)\rho} \bar{x}_{(-i)},  \frac{1 + (p-2)\rho - (p-1) \rho^2}{1 + (p-2)  \rho})$
+
+Given p = 5, $\rho = 0.25$ we use multistage-gibbs
+```{r}
+Nsim <- 500
+p <- 5; r <- 0.25
+
+X <- rnorm(p)
+cur <- rnorm(p)  # initialize the X (p by 1), each component is N(0, 1) 
+for (i in 1:Nsim) {
+  for (j in 1:p) {
+    m <- sum(cur[-j]) / (p - 1)
+    cur[j] <- rnorm(1, mean = (p - 1) * r * m / (1 + (p - 2) * p), 
+                    sd  = sqrt((1 + (p - 2) * r - (p - 1) * r^2)) / (1 + (p - 2) * r))
+  }
+  
+  X <- cbind(X ,cur)
+}
+
+str(X)  # num [1:5, 1:501]
+str(cur)
+
+```
+
+```{r}
+par(mfrow=c(1,5))
+for (i in 1:p) {
+  hist(X[i, ], freq = F, col = "wheat2", xlab = "", main = "")
+  curve(dnorm(x), add = T, col = "sienna", lwd = 2)
+  
+}
+
+```
+Instead using mvrnorm
+```{r}
+install.packages("MASS")
+library(MASS)
+```
+
+```{r}
+# 1st construct the covariance matrix for rmvnorm
+I <- diag(rep(1, p))
+J <- matrix(1, nrow = p, ncol = p)
+s <- (1-r) * I + r * J
+system.time(mvrnorm(500, mu = rep(0, p), Sigma = s))
+```
+
+
+## Example 7.5
+```{r}
+x1 <- c(91,504,557,609,693,727,764,803,857,929,970,1043,1089,1195,1384,1713)  # boy data
+x2 <- c(91,304,557,409,493,527,564,603,657,729,770,843,889,995,1084,1113)  # girl data
+
+x1 <- log(x1)
+x2 <- log(x2)
+
+xbar1 <- mean(x1)  # 6.631066
+xbar2 <-mean(x2)  # 6.370477
+
+sd(x1)    # 0.6532516
+sd(x2)    # 0.610249
+
+n1 <- length(x1)
+n2 <- length(x2)
+
+```
+
+```{r}
+a1 <- a2 <- a3 <- 3; b1 <- b2 <- b3 <- 4
+mu0 <- 5
+Nsim < - 1000
+
+sigma_mu2 <- tau2 <- sigma2 <- mu <- theta_1 <- rep(0, Nsim)
+
+
+sigma_mu2[1] <- 1 / rgamma(1, shape = a3, rate = b3)
+mu[1] <- rnorm(1, mean = mu0, sd = sqrt(sigma_mu2))
+
+tau2[1] <- 1/rgamma(1, shape = a2, rate = b2)
+theta_1[1] <- rnorm(1, mu[1], sd = sqrt(tau2[1]))
+#theta_2[1] <- rnorm(1, mu[1], sd = sqrt(tau2[1]))
+sigma2[1] <- 1/rgamma(1, shape = a1, rate = b1)
+
+for (t in 2:Nsim) {
+  B <- sigma2[t-1] / (sigma2[t-1] + n1 * tau2[t-1])
+  theta_1[t] <- rnorm(1, B * mu[t-1] + (1-B) * xbar1, sd = sqrt(B * tau2[t-1]))
+  #theta_2[t] <- rnorm(1, B * mu[t-1] + (1-B) * xbar2, sd = sqrt(B * tau2[t-1]))
+  
+  D <- tau2[t-1] /  (tau2[t-1] + 2 * sigma_mu2[t-1])
+  theta1_bar <- (n1 * theta_1[t]) / (n1 + n2)
+  mu[t] <- rnorm(1, D * mu0 + (1 - D) * theta1_bar, sd = sqrt(D * sigma_mu2[t-1]))
+  
+  sigma2[t] <- 1/rgamma(1, shape = n1 + a1, rate = 0.5 * sum(x1 - theta_1[t])^2 + b1)
+  tau2[t] <- 1/rgamma(1, shape = 1 + a2, rate = 0.5 * sum(theta_1[t] - mu[t])^2 + b2)
+  sigma_mu2[t] <- 1/rgamma(1, shape = 0.5 + a3, 0.5 * (mu[t] - mu0)^2 + b3)
+  
+
+}
+
+```
+
+
+```{r}
+mean(theta_1)
+mean(mu)
+mean(sigma2)
+mean(sigma_mu2)
+mean(tau2)
+```
+
+```{r}
+par(mfrow = c(3, 2))
+hist(theta_1, breaks = 150)
+hist(mu, breaks = 150)
+hist(sigma2, breaks = 150)
+hist(sigma_mu2, breaks = 150)
+hist(tau2, breaks = 150)
+
+```
+
+
+
+
+
+
+

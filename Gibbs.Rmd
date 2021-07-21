@@ -1,5 +1,5 @@
 ---
-title: "Gibbs"
+title: "Two-stage Gibbs"
 author: "XC"
 date: "20/07/2021"
 output: pdf_document
@@ -65,12 +65,13 @@ Remark:
 
 ```{r}
 x <- c(91,504,557,609,693,727,764,803,857,929,970,1043,1089,1195,1384,1713)  # data
+x <- log(x)
 
 a <- 3; b <- 3; theta_0 <- 5; tau2 <- 10   # specified values for hyper parameters
 
 xbar <- mean(x)
 n <-length(x)
-Nsim <- 10000
+Nsim <- 5000
 
 sigma2 <- theta <- rep(0, Nsim)                     # inti arrays
 
@@ -88,25 +89,25 @@ for (i in 2:Nsim) {
 ```
 
 ```{r}
-log(xbar)   # 6.769068
-
-sd(x)       # 378
-
-log(sd(x))
+xbar  # 6.631066  
+var(x)   # 0.4267377
+sd(x)   # 0.6532516
 
 ```
+
+
 Now check the posterior mean of theta and sigma2
 ```{r}
-mean(theta)
-mean(sqrt(sigma2))
+mean(theta)         # 6.624194
+mean(sigma2)        # 0.6483523
+mean(sqrt(sigma2))  # 0.7951903
 
-mean(log(sqrt(sigma2)))   # 6.707253
 
 
 par(mfrow = c(1, 2))
 
-hist(log(theta), breaks = 150)
-hist(log(sqrt(sigma2)), breaks = 150)
+hist(theta, breaks = 150)
+hist(sqrt(sigma2), breaks = 150)
 #hist(log(theta), ylab = "posterior density of log(theta)")
 #hist(log(sqrt(sigma2)), ylab = "posteior density of log(sigma)")
 ```
