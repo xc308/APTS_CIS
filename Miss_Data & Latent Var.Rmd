@@ -1,0 +1,92 @@
+---
+title: "Miss data & Latent Variables"
+author: "XC"
+date: "22/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Example 7.6 
+
+Treat a cencored-data model as a missing-data model
+- cencored data observation density or likelihood $g(x|\theta) = L(\theta|x) \propto \Pi_{i = 1}^m e^{-(x_i - \theta)^2}$
+- complete-data obvervation density or likelihood $f(x, z | \theta) = L(\theta|x, z) \propto \Pi_{i=1}^m e^{-(x_i-\theta)^2} \Pi_{i=m+1}^n e^{-(z_i - \theta)^2}$
+
+
+- Given prior on $\theta$, flat prior $\pi(\theta) = 1$, the conditional distributions 
+    * $\pi(\theta | x, z) \propto f(\theta | x, z) \pi(\theta)$ so $\theta |x, z \sim N(\frac{m \bar{x} + (n-m) \bar{z}}{n}, \frac{1}{n})$
+    * $f(z|\theta, x)$ is the product of truncated normals, i.e. $z|\theta, x \sim \frac{\phi(z-\theta)}{1-\Phi(a-\theta)}$
+    
+    
+```{r}    
+install.packages("bayesm")  # for rtrun() to simulate truncate normals
+library(bayesm)
+
+m <- 100
+n <- 150
+a <- 3
+
+zbar <- rep(1, n-m)  # init array
+theta <- rep(1, m)
+
+xbar <- mean(rnom(m))
+zbar <- mean(rnorm(n-m))
+theta[1] <- rnorm(1, mu = (m * xbar + (n - m) * zbar) / n)
+zbar[1] <- mean(rtrun(mu = rep(theta[1], n-m), sigma = rep(1, n-m), a = rep(a, n-m), b = rep(Inf, n-m)))
+
+
+for (i in 2:Nsim) {
+  zbar[i] <- mean(rtrun(mu  = rep(theta[i-1], n-m), sigma = rep(1, n-m), a = rep(a, n-m), b = rep(Inf, n-m)))
+  theta[i] <- rnorm(1, mu = (m * xbar + (n - m) * zbar[i]) / n, sd = sqrt(1/n) )
+}
+
+```
+
+
+
+
+## Example 7.12
+```{r}
+x <- c(5, 1, 5, 14, 3, 19, 1, 1, 4, 22)  # mean x 7.5
+t <- c(94.32, 15.72, 62.88, 125.76, 5.24, 31.44, 1.05, 1.05, 2.10, 10.48)  #  mean 35
+
+
+alpha <- 1.8
+gam <- 0.01
+delta <- 1
+
+nx <- length(x)
+Nsim <- 5000
+
+lambda <- matrix(0, nrow = Nsim, ncol = nx)
+beta <- rep(0.01, Nsim)
+
+for (j in 1:nx) {
+  lambda[1, j] <- rgamma(1, shape = x[j] + alpha, rate = t[j] + beta[1])
+}
+
+
+for (t in 2:Nsim) {
+  for (j in 1:nx) {
+    lambda[t, j] <- rgamma(1, shape = x[j] + alpha, rate = t[j] + beta[t-1])
+  }
+  beta[t] <- rgamma(1, shape = nx * alpha + gam, rate = delta + sum(lambda[t, ]))
+}  
+
+
+str(beta)
+str(lambda)
+
+```
+
+
+```{r}
+str(lambda)
+str(beta)
+
+
+
+```
