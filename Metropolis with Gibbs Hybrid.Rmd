@@ -1,0 +1,74 @@
+---
+title: "Metropolis with Gibbs and hybrid"
+author: "XC"
+date: "23/07/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Hybrid
+
+When the full conditional distribution of the gibbs is not able to be simulated from the rd number generator, e.g, within a set of full conditional densities f1, ..., fp, fi is not conventional, then _Metropolis within gibbs_ can be adopted. 
+
+
+In stead of simulating $X_i \sim f_i(x_i | x_1^{(t+1)}, x_2^{(t+1)}, ..., x_{i-1}^{(t+1)}, x_{i+1}^{(t)}, x_{i+2}^{(t)})$, we can simulate one single step of _any_ MCMC scheme associated with the stationary distribution $f_i(x_i | x_1^{(t+1)}, x_2^{(t+1)}, ..., x_{i-1}^{(t+1)}, x_{i+1}^{(t)}, x_{i+2}^{(t)})$
+
+  - a simple resolution is use a rd walk metropolis algo centered at $x_i^{(t)}$
+  - the validility of the resulting algo is the joint distribution f remains the stationary distribution of the correspoding Markov chain. 
+  - not using pure metropolis-hasting is because designing a MH on a large-dimension of target is challenging or even impossible. 
+  - The fundamental gain in using Gibbs-like structure is it breaks down a complex model into a large number of smaller/simpler targets, where local MH algo can be desinate
+  
+
+
+## Example 7.18  
+```{r}
+Nsim <- 500
+X <- rep(rexp(1), Nsim)
+Y <- rep(rexp(1), Nsim)
+
+for (i in 2:Nsim) {
+  X[i] <- rexp(1, rate = Y[i-1])
+  Y[i] <- rexp(1, rate = X[i])
+}
+
+par(mfrow = c(1, 2))
+hist(X)
+plot(cumsum(X) / (1:Nsim))
+  
+```
+  
+Remark
+  - Convergence issue
+  - due to these conditional distr do not correspond to any joint distribution
+  - the only possible joint dist is $f(x, y) = exp(-xy)$, but has no finite integral
+  
+
+So the only way to make sure the Gibbs sampler you're using is valid is to check the joint distribution has a fintie integral. 
+
+## Example 7.19
+
+If improper prior are used in Gibbs, then the posterior must always be checked for proprioety. 
+And it's always the case that improper prior on the variance is more problematic than on the mean. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

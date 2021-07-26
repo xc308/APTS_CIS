@@ -1,0 +1,473 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={MHsampler},
+  pdfauthor={XC},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifluatex
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+
+\title{MHsampler}
+\author{XC}
+\date{19/07/2021}
+
+\begin{document}
+\maketitle
+
+\hypertarget{metropolishastings-algorithms}{%
+\subsection{Metropolis--Hastings
+Algorithms}\label{metropolishastings-algorithms}}
+
+Unlike IS sampling generating iid samples, MH generates correlated
+variables from MC, but it provide easier proposal when IS doesn't apply.
+
+\begin{itemize}
+\item
+  only little need to be known about the target f
+\item
+  Markovian property leads to efficient decompositions of
+  high-dimensional problems in a sequence of smaller problems that are
+  much easier to solve
+\item
+  Most of your time and energy will be spent in designing and assessing
+  your MCMC algorithms
+\item
+  Incredible feature of MH:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    for every given q(.), we can construct a Metropolis-Hasting kernel
+    whose stationary is the target f
+  \item
+  \end{itemize}
+\end{itemize}
+
+\hypertarget{example-6.1}{%
+\subsection{Example 6.1}\label{example-6.1}}
+
+\begin{itemize}
+\tightlist
+\item
+  Target distriubtion: Beta(2.7, 6.3)
+\item
+  proposal dist q: unif{[}0,1{]}, means does not depend on previous step
+  value of the chain
+\item
+  MH algo
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{a }\OtherTok{\textless{}{-}} \FloatTok{2.7}\NormalTok{; b }\OtherTok{=} \FloatTok{6.3}
+
+\NormalTok{Nsim }\OtherTok{\textless{}{-}} \DecValTok{5000}
+\NormalTok{X }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{), Nsim)   }\CommentTok{\# initialize the chain}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{2}\SpecialCharTok{:}\NormalTok{Nsim) \{}
+\NormalTok{  Y }\OtherTok{=} \FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{)        }\CommentTok{\# proposed value from q}
+\NormalTok{  alpha }\OtherTok{=} \FunctionTok{dbeta}\NormalTok{(Y, a, b) }\SpecialCharTok{/} \FunctionTok{dbeta}\NormalTok{(X[i}\DecValTok{{-}1}\NormalTok{], a, b)    }\CommentTok{\# q are all unif[0, 1] cancell out}
+\NormalTok{  X[i] }\OtherTok{=}\NormalTok{ X[i}\DecValTok{{-}1}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ (Y }\SpecialCharTok{{-}}\NormalTok{ X[i}\DecValTok{{-}1}\NormalTok{]) }\SpecialCharTok{*}\NormalTok{ (alpha }\SpecialCharTok{\textgreater{}} \FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{))   }\CommentTok{\# logical true or false}
+\NormalTok{\}}
+
+\FunctionTok{str}\NormalTok{(X)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  num [1:5000] 0.686 0.236 0.236 0.379 0.379 ...
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(X, }\AttributeTok{type =} \StringTok{"l"}\NormalTok{)    }\CommentTok{\# no pattern }
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MH_sampler_files/figure-latex/unnamed-chunk-1-1.pdf}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{plot}\NormalTok{(X[}\DecValTok{4500}\SpecialCharTok{:}\DecValTok{4800}\NormalTok{], }\AttributeTok{type =} \StringTok{"l"}\NormalTok{)      }\CommentTok{\# for some intervals of time, the sequence (X(t)) does not change because all corresponding Y\textquotesingle{}s are rejected. }
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MH_sampler_files/figure-latex/unnamed-chunk-1-2.pdf}
+Remark:
+
+\begin{itemize}
+\tightlist
+\item
+  Those multiple occurrences of the same numerical value (rejected Y's)
+  must be kept in the sample as such, otherwise, the validity of the
+  approximation of f is lost!
+\item
+  Consider the entire chain as a sample, its histogram properly
+  approximates the Be(2.7, 6.3) target.
+\end{itemize}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{hist}\NormalTok{(X, }\AttributeTok{breaks =} \DecValTok{300}\NormalTok{)}
+\FunctionTok{lines}\NormalTok{(}\FunctionTok{rbeta}\NormalTok{(}\DecValTok{5000}\NormalTok{, }\FloatTok{2.7}\NormalTok{, }\FloatTok{6.3}\NormalTok{), }\AttributeTok{col =} \StringTok{"red"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MH_sampler_files/figure-latex/unnamed-chunk-2-1.pdf}
+
+Can checked even further using a Kolmogorov--Smirnov test of equality
+between the two samples:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{ks.test}\NormalTok{(}\FunctionTok{jitter}\NormalTok{(X), }\FunctionTok{rbeta}\NormalTok{(}\DecValTok{5000}\NormalTok{, a, b))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## 
+##  Two-sample Kolmogorov-Smirnov test
+## 
+## data:  jitter(X) and rbeta(5000, a, b)
+## D = 0.0346, p-value = 0.005028
+## alternative hypothesis: two-sided
+\end{verbatim}
+
+Can also compare the mean and variance
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{mean}\NormalTok{(X)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.3027625
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{var}\NormalTok{(X)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.02085043
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# theoretical }
+\NormalTok{(mean\_theo }\OtherTok{\textless{}{-}}\NormalTok{ a}\SpecialCharTok{/}\NormalTok{(a}\SpecialCharTok{+}\NormalTok{b))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.3
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{(var\_theo }\OtherTok{\textless{}{-}}\NormalTok{ a}\SpecialCharTok{*}\NormalTok{b }\SpecialCharTok{/}\NormalTok{ ((a}\SpecialCharTok{+}\NormalTok{b)}\SpecialCharTok{\^{}}\DecValTok{2} \SpecialCharTok{*}\NormalTok{ (a}\SpecialCharTok{+}\NormalTok{b}\SpecialCharTok{+}\DecValTok{1}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## [1] 0.021
+\end{verbatim}
+
+Remark: - although rbeta output look similar as MH simulation output -
+rbeta generates iid, but MH generates correlated samples. - so the
+quality of the samples are degraded, and need more simulations to
+achieve the same precision. - need the " effective sample size for
+Markov chains" (Section 8.4.3).
+
+\hypertarget{properties-of-mh}{%
+\subsubsection{Properties of MH}\label{properties-of-mh}}
+
+\begin{itemize}
+\item
+  In symmetric case, i.e.~\(q(y|x) = q(x|y)\), the acceptance probabilty
+  alpha only depends on the ratio \(f(y)/ f(x^{(t)})\), so alpha is
+  independent of q
+\item
+  But the performance of HM will be affected by the choice of q
+
+  \begin{itemize}
+  \tightlist
+  \item
+    if the supp(q) is too small, compared with the range of f, then the
+    M chain will have difficulty to explore the range of f, and will
+    coverge very slowly.
+  \end{itemize}
+\item
+  Another property of MH algo: it only depends on the ratios:
+  \(f(y)/ f(x^{(t)})\), \(q(x^{(t)})|y) / q(y|x^{(t)})\) hence
+  independent of normalizing constant.
+\item
+  q may be chosen in a way that the intractable parts of f is canceled
+  out.
+\end{itemize}
+
+\hypertarget{example-6.2}{%
+\subsubsection{Example 6.2}\label{example-6.2}}
+
+To generate a student-t random variable, (that is, when f corresponds to
+a t(1) density), it is possible to use a N(0, 1) candidate within a
+Metropolis--Hastings algorithm
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Nsim }\OtherTok{\textless{}{-}}  \FloatTok{1e4}  
+\NormalTok{X }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{), Nsim) }\CommentTok{\# intial value }
+\ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{2}\SpecialCharTok{:}\NormalTok{Nsim) \{}
+\NormalTok{  Y }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(}\DecValTok{1}\NormalTok{)     }\CommentTok{\# proposal}
+\NormalTok{  alpha }\OtherTok{\textless{}{-}} \FunctionTok{dt}\NormalTok{(Y, }\DecValTok{1}\NormalTok{) }\SpecialCharTok{*} \FunctionTok{dnorm}\NormalTok{(X[i}\DecValTok{{-}1}\NormalTok{]) }\SpecialCharTok{/}\NormalTok{ (}\FunctionTok{dt}\NormalTok{(X[i}\DecValTok{{-}1}\NormalTok{], }\DecValTok{1}\NormalTok{) }\SpecialCharTok{*} \FunctionTok{dnorm}\NormalTok{(Y))}
+\NormalTok{  X[i] }\OtherTok{\textless{}{-}}\NormalTok{ X[i}\DecValTok{{-}1}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ (Y }\SpecialCharTok{{-}}\NormalTok{ X[i}\DecValTok{{-}1}\NormalTok{]) }\SpecialCharTok{*}\NormalTok{ (alpha }\SpecialCharTok{\textgreater{}} \FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{))}
+\NormalTok{\}}
+
+\FunctionTok{str}\NormalTok{(X)   }\CommentTok{\# num [1:10000] 0.6923}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+##  num [1:10000] 0.00831 0.21775 -0.76952 1.07552 0.93699 ...
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{2}\NormalTok{))}
+\FunctionTok{hist}\NormalTok{(X, }\AttributeTok{breaks =} \DecValTok{250}\NormalTok{)}
+\FunctionTok{acf}\NormalTok{(X)}
+
+\CommentTok{\# want to  see the approximation to  P(X \textless{} 3)}
+\FunctionTok{plot}\NormalTok{(}\FunctionTok{cumsum}\NormalTok{(X }\SpecialCharTok{\textless{}} \DecValTok{3}\NormalTok{) }\SpecialCharTok{/}\NormalTok{ (}\DecValTok{1}\SpecialCharTok{:}\FloatTok{1e4}\NormalTok{), }\AttributeTok{type =} \StringTok{"l"}\NormalTok{, }\AttributeTok{lwd =} \DecValTok{2}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MH_sampler_files/figure-latex/unnamed-chunk-5-1.pdf}
+
+\hypertarget{more-realistic-situation}{%
+\subsection{More realistic situation}\label{more-realistic-situation}}
+
+When the indept proposal q is derived from a preliminary estimation of
+the parameters of the model. - the proposal could be a normal or t
+distribution centered at the mle of theta and the variance - covariance
+matrix be the inverse of fisher informaton matrix
+
+\hypertarget{random-walk-mh}{%
+\subsubsection{Random walk MH}\label{random-walk-mh}}
+
+Example 6.4 formal problem of generating the normal distribution N(0, 1)
+based on a random walk proposal equal to the uniform distribution on
+{[}−δ, δ{]}.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{Uni\_rdwk }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(delta) \{}
+\NormalTok{  Nsim }\OtherTok{\textless{}{-}} \FloatTok{1e4}
+\NormalTok{  X }\OtherTok{\textless{}{-}} \FunctionTok{rep}\NormalTok{(}\FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{), Nsim)}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{2}\SpecialCharTok{:}\NormalTok{Nsim) \{}
+\NormalTok{    Y }\OtherTok{\textless{}{-}} \FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{, X[i}\DecValTok{{-}1}\NormalTok{] }\SpecialCharTok{{-}}\NormalTok{ delta, X[i}\DecValTok{{-}1}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ delta)}
+    \CommentTok{\# \textless{}{-} rnorm(1, X[i{-}1], 1)         \# proposal is N(X[i{-}1], 1) }
+\NormalTok{    alpha }\OtherTok{\textless{}{-}} \FunctionTok{dnorm}\NormalTok{(Y) }\SpecialCharTok{/} \FunctionTok{dnorm}\NormalTok{(X[i}\DecValTok{{-}1}\NormalTok{])}
+\NormalTok{    X[i] }\OtherTok{=}\NormalTok{ X[i}\DecValTok{{-}1}\NormalTok{] }\SpecialCharTok{+}\NormalTok{ (Y }\SpecialCharTok{{-}}\NormalTok{ X[i}\DecValTok{{-}1}\NormalTok{]) }\SpecialCharTok{*}\NormalTok{ (alpha }\SpecialCharTok{\textgreater{}} \FunctionTok{runif}\NormalTok{(}\DecValTok{1}\NormalTok{))}
+\NormalTok{  \}}
+\NormalTok{  X}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Calibrating the delta with 3 values: 0.1, 1, and 10
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{X\_0}\FloatTok{.1} \OtherTok{\textless{}{-}} \FunctionTok{Uni\_rdwk}\NormalTok{(}\FloatTok{0.1}\NormalTok{)}
+\NormalTok{X\_1 }\OtherTok{\textless{}{-}} \FunctionTok{Uni\_rdwk}\NormalTok{(}\DecValTok{1}\NormalTok{)}
+\NormalTok{X\_10 }\OtherTok{\textless{}{-}} \FunctionTok{Uni\_rdwk}\NormalTok{(}\DecValTok{10}\NormalTok{)}
+
+
+\FunctionTok{par}\NormalTok{(}\AttributeTok{mfrow =} \FunctionTok{c}\NormalTok{(}\DecValTok{3}\NormalTok{, }\DecValTok{3}\NormalTok{))}
+
+\CommentTok{\# plot cumsum}
+\NormalTok{plt\_cum }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(X, ylim) \{}
+  \FunctionTok{plot}\NormalTok{(}\FunctionTok{cumsum}\NormalTok{(X) }\SpecialCharTok{/}\NormalTok{ (}\DecValTok{1}\SpecialCharTok{:}\FloatTok{1e4}\NormalTok{), }\AttributeTok{ylim =}\NormalTok{ ylim)}
+\NormalTok{\}}
+
+\FunctionTok{plt\_cum}\NormalTok{(X\_0}\FloatTok{.1}\NormalTok{, }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\FunctionTok{plt\_cum}\NormalTok{(X\_1, }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+\FunctionTok{plt\_cum}\NormalTok{(X\_10, }\AttributeTok{ylim =} \FunctionTok{c}\NormalTok{(}\SpecialCharTok{{-}}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{))}
+
+
+\CommentTok{\# plot hist}
+\NormalTok{plt\_hist }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(X) \{}
+  \FunctionTok{hist}\NormalTok{(X, }\AttributeTok{breaks =} \DecValTok{250}\NormalTok{)}
+\NormalTok{\}}
+
+\FunctionTok{plt\_hist}\NormalTok{(X\_0}\FloatTok{.1}\NormalTok{)}
+\FunctionTok{plt\_hist}\NormalTok{(X\_1)}
+\FunctionTok{plt\_hist}\NormalTok{(X\_10)}
+
+
+
+\CommentTok{\# Plot ACF}
+
+\NormalTok{plt\_acf }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(X) \{}
+  \FunctionTok{acf}\NormalTok{(X)}
+\NormalTok{\}}
+
+\FunctionTok{plt\_acf}\NormalTok{(X\_0}\FloatTok{.1}\NormalTok{)}
+\FunctionTok{plt\_acf}\NormalTok{(X\_1)}
+\FunctionTok{plt\_acf}\NormalTok{(X\_10)}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{MH_sampler_files/figure-latex/unnamed-chunk-7-1.pdf}
+Remark: - Too narrow or too wide a candidate (too small and too large
+delta) results in slow convergence and high autocorrelation -
+calibrating the scale δ of the random walk is crucial to achieving a
+good approximation to the target distribution in a reasonable number of
+iterations. - more realistic situations, this calibration becomes a
+challenging issue
+
+\hypertarget{adv-and-disadv-of-rd-walk}{%
+\paragraph{Adv and disadv of Rd walk}\label{adv-and-disadv-of-rd-walk}}
+
+\begin{itemize}
+\tightlist
+\item
+  Idendpend MH only applies to some specific situations, while Rd walk
+  caters to most cases
+\item
+  But Rd WALK is not the most efficient choic:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    it requires many iterations for difficulities such the low
+    probability regions between modal regions of f
+  \item
+    due to its simitray, it spends half the simulation revisit the
+  \item
+    So exists alternatives that bypass the perfect symmetry in the rdwk
+    to gain efficiency
+  \item
+    although not always easy to implement.
+  \end{itemize}
+\end{itemize}
+
+One of the alternatives is the Langivine that choose to move to heavier
+value of target f by including the gradient in the proposal
+
+But in the mixture model structure, the bimodal structure can be hard
+for Lagenin as the local mode can be very attractive
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{like}\OtherTok{=}\ControlFlowTok{function}\NormalTok{(beda)\{}
+\NormalTok{mia}\OtherTok{=}\FunctionTok{mean}\NormalTok{(Pima.tr}\SpecialCharTok{$}\NormalTok{bmi)}
+\FunctionTok{prod}\NormalTok{(}\FunctionTok{pnorm}\NormalTok{(beda[}\DecValTok{1}\NormalTok{]}\SpecialCharTok{+}\NormalTok{(Pima.tr}\SpecialCharTok{$}\NormalTok{bm[Pima.tr}\SpecialCharTok{$}\NormalTok{t}\SpecialCharTok{==}\StringTok{"Yes"}\NormalTok{]}\SpecialCharTok{{-}}
+\NormalTok{mia)}\SpecialCharTok{*}\NormalTok{beda[}\DecValTok{2}\NormalTok{]))}\SpecialCharTok{*}
+\FunctionTok{prod}\NormalTok{(}\FunctionTok{pnorm}\NormalTok{(}\SpecialCharTok{{-}}\NormalTok{beda[}\DecValTok{1}\NormalTok{]}\SpecialCharTok{{-}}\NormalTok{(Pima.tr}\SpecialCharTok{$}\NormalTok{bm[Pima.tr}\SpecialCharTok{$}\NormalTok{t}\SpecialCharTok{==}\StringTok{"No"}\NormalTok{]}
+\SpecialCharTok{{-}}\NormalTok{mia)}\SpecialCharTok{*}\NormalTok{beda[}\DecValTok{2}\NormalTok{]))}\SpecialCharTok{/}\FunctionTok{exp}\NormalTok{(}\FunctionTok{sum}\NormalTok{(beda}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)}\SpecialCharTok{/}\DecValTok{200}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+
+\end{document}
